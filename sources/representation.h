@@ -28,6 +28,8 @@ public:
     static v8::Handle<v8::Value> GetEdge(const v8::Arguments& args);
     static v8::Handle<v8::Value> GetCorner(const v8::Arguments& args);
     static v8::Handle<v8::Value> GetDimensions(const v8::Arguments& args);
+    
+    // TODO: create *move* constructors here, etc.
 
 protected:
     static CuboidObj * ProcessThisArgument(const v8::Arguments& args);

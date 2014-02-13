@@ -281,7 +281,6 @@ Handle<Value> CuboidObj::GetCorner(const Arguments& args) {
 
 Handle<Value> CuboidObj::GetDimensions(const Arguments& args) {
     HandleScope scope;
-    
     GETTHIS;
     
     CuboidDimensions dimensions = thisObj->cuboidData->dimensions;
