@@ -1,0 +1,14 @@
+{
+  "name": "node-cuboids",
+  "description": "a binding for a C-based cuboid puzzle API",
+  "author": "Alex Nichol <unixpickle@gmail.com>",
+  "repository": "https://github.com/unixpickle/node-cuboids",
+  "version": "0.0.1",
+  "licenses": [{
+    "type": "GPL",
+    "url": "http://www.gnu.org/licenses/gpl.html"
+  }],
+  "engines": {
+    "node": "0.10.x"
+  }
+}

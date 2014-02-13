@@ -1,0 +1,1 @@
+#define ThrowV8(t,m) ThrowException(t(String::New(m)))
