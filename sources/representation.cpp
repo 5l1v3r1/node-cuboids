@@ -6,18 +6,6 @@
 #define GETTHIS CuboidObj * thisObj = ProcessThisArgument(args);\
     if (!thisObj) return ThrowV8(Exception::TypeError, "must be called on Cuboid object");
 
-#define ENSURE_2_INT_ARGS if (args.Length() != 2)\
-        return ThrowV8(Exception::Error, "this function takes exactly 2 arguments");\
-    if (!args[0]->IsNumber() || !args[1]->IsNumber())\
-        return ThrowV8(Exception::TypeError, "arguments must be integers");\
-
-#define ENSURE_1_INT_ARG if (args.Length() != 1) {\
-        return ThrowV8(Exception::Error, "this function takes exactly 1 argument");\
-    }\
-    if (!args[0]->IsNumber()) {\
-        return ThrowV8(Exception::TypeError, "argument must be an integer");\
-    }
-
 using namespace v8;
 
 Persistent<FunctionTemplate> CuboidObj::constructor;
@@ -96,6 +84,11 @@ Handle<Value> CuboidObj::New(const Arguments& args) {
     d.x = (uint8_t)args[0]->ToNumber()->Value();
     d.y = (uint8_t)args[0]->ToNumber()->Value();
     d.z = (uint8_t)args[0]->ToNumber()->Value();
+    
+    if (d.x < 2 || d.y < 2 || d.z < 2) {
+        return ThrowV8(Exception::Error, "each dimensions must be > 1");
+    }
+    
     Cuboid * object = cuboid_create(d);
     
     CuboidObj * obj = new CuboidObj(object);
@@ -104,6 +97,8 @@ Handle<Value> CuboidObj::New(const Arguments& args) {
     
     return args.This();
 }
+
+/** Instance Methods **/
 
 Handle<Value> CuboidObj::Multiply(const Arguments& args) {
     HandleScope scope;
@@ -115,6 +110,7 @@ Handle<Value> CuboidObj::Multiply(const Arguments& args) {
     
     CuboidObj * rightObj = CastToCuboid(args[0]);
     if (!rightObj) {
+        // TODO: replace all ThrowException with ThrowV8
         Handle<String> message = String::New("first argument must be a Cuboid");
         return ThrowException(Exception::TypeError(message));
     }
@@ -134,7 +130,7 @@ Handle<Value> CuboidObj::Multiply(const Arguments& args) {
 Handle<Value> CuboidObj::EdgeIndex(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_2_INT_ARGS;
+    Ensure2IntArgs(args);
     
     int dedge = args[0]->ToNumber()->Value();
     if (dedge >= 12 || dedge < 0) {
@@ -150,7 +146,7 @@ Handle<Value> CuboidObj::EdgeIndex(const Arguments& args) {
 Handle<Value> CuboidObj::CenterIndex(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_2_INT_ARGS;
+    Ensure2IntArgs(args);
     
     int face = args[0]->ToNumber()->Value();
     if (face < 1 || face > 6) {
@@ -167,7 +163,7 @@ Handle<Value> CuboidObj::CenterIndex(const Arguments& args) {
 Handle<Value> CuboidObj::CountEdgesForDedge(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_1_INT_ARG;
+    Ensure1IntArg(args);
     
     int dedge = args[0]->ToNumber()->Value();
     if (dedge < 0 || dedge > 11) {
@@ -194,7 +190,7 @@ Handle<Value> CuboidObj::CountEdges(const Arguments& args) {
 Handle<Value> CuboidObj::CountCentersForFace(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_1_INT_ARG;
+    Ensure1IntArg(args);
     
     int face = args[0]->ToNumber()->Value();
     if (face < 1 || face > 6) {
@@ -220,7 +216,7 @@ Handle<Value> CuboidObj::CountCenters(const Arguments& args) {
 Handle<Value> CuboidObj::GetCenter(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_1_INT_ARG;
+    Ensure1IntArg(args);
     
     int index = args[0]->ToNumber()->Value();
     if (index < 0 || index >= cuboid_count_centers(thisObj->cuboidData)) {
@@ -240,7 +236,7 @@ Handle<Value> CuboidObj::GetCenter(const Arguments& args) {
 Handle<Value> CuboidObj::GetEdge(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_1_INT_ARG;
+    Ensure1IntArg(args);
     
     int index = args[0]->ToNumber()->Value();
     if (index < 0 || index >= cuboid_count_edges(thisObj->cuboidData)) {
@@ -262,7 +258,7 @@ Handle<Value> CuboidObj::GetEdge(const Arguments& args) {
 Handle<Value> CuboidObj::GetCorner(const Arguments& args) {
     HandleScope scope;
     GETTHIS;
-    ENSURE_1_INT_ARG;
+    Ensure1IntArg(args);
     
     int index = args[0]->ToNumber()->Value();
     if (index < 0 || index >= 12) {
@@ -284,40 +280,10 @@ Handle<Value> CuboidObj::GetDimensions(const Arguments& args) {
     GETTHIS;
     
     CuboidDimensions dimensions = thisObj->cuboidData->dimensions;
-    
-    // create our result {x: <x>, y: <y>, z: <z>}
-    Handle<Object> object = Object::New();
-    Handle<Number> xVal = Number::New((double)dimensions.x);
-    Handle<Number> yVal = Number::New((double)dimensions.y);
-    Handle<Number> zVal = Number::New((double)dimensions.z);
-    object->Set(String::NewSymbol("x"), xVal);
-    object->Set(String::NewSymbol("y"), yVal);
-    object->Set(String::NewSymbol("z"), zVal);
-
-    return scope.Close(object);
+    return scope.Close(dimensionsToObject(dimensions));
 }
 
-/* PROTECTED */
-
-CuboidObj * CuboidObj::ProcessThisArgument(const v8::Arguments& args) {
-    return CastToCuboid(args.This());
-}
-
-CuboidObj * CuboidObj::CastToCuboid(Handle<Value> value) {
-    HandleScope scope;
-    
-    // use our internal field to validate the instance
-    if (!value->IsObject()) return NULL;
-    Handle<Object> obj = value->ToObject();
-    if (obj->InternalFieldCount() != 2) return NULL;
-    if (!obj->GetInternalField(1)->IsString()) return NULL;
-    
-    String::AsciiValue str(obj->GetInternalField(1));
-    if (strcmp(*str, CLASS_SPECIFIER) != 0) return NULL;
-    
-    // this is now considered "safe"
-    return ObjectWrap::Unwrap<CuboidObj>(value->ToObject());
-}
+/** Utility **/
 
 Handle<Object> CuboidObj::CreateCuboid(Cuboid * internal) {
     // we have to go through our constructor in order to
@@ -338,4 +304,19 @@ Handle<Object> CuboidObj::CreateCuboid(Cuboid * internal) {
     resultObj->cuboidData = internal;
     
     return scope.Close(result);
+}
+
+CuboidObj * CuboidObj::CastToCuboid(Handle<Value> value) {
+    if (!verifySpecifier(value, CLASS_SPECIFIER)) return NULL;
+    return ObjectWrap::Unwrap<CuboidObj>(value->ToObject());
+}
+
+Cuboid * CuboidObj::getCuboidData() {
+    return cuboidData;
+}
+
+/* PROTECTED */
+
+CuboidObj * CuboidObj::ProcessThisArgument(const v8::Arguments& args) {
+    return CastToCuboid(args.This());
 }

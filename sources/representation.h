@@ -1,3 +1,6 @@
+#ifndef _REPRESENTATION_H_
+#define _REPRESENTATION_H_
+
 #include <node.h>
 #include "util.h"
 
@@ -30,11 +33,15 @@ public:
     static v8::Handle<v8::Value> GetDimensions(const v8::Arguments& args);
     
     // TODO: create *move* constructors here, etc.
-
+    
+    static v8::Handle<v8::Object> CreateCuboid(Cuboid * internal);
+    static CuboidObj * CastToCuboid(v8::Handle<v8::Value> value);
+    
+    Cuboid * getCuboidData();
+    
 protected:
     static CuboidObj * ProcessThisArgument(const v8::Arguments& args);
-    static CuboidObj * CastToCuboid(v8::Handle<v8::Value> value);
-    static v8::Handle<v8::Object> CreateCuboid(Cuboid * internal);
-    
     Cuboid * cuboidData;
 };
+
+#endif
