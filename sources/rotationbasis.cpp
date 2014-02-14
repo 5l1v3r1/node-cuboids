@@ -75,7 +75,7 @@ Handle<Value> RotationBasisObj::New(const Arguments& args) {
     uint8_t dimX = (uint8_t)args[0]->ToNumber()->Value();
     uint8_t dimY = (uint8_t)args[1]->ToNumber()->Value();
     uint8_t dimZ = (uint8_t)args[2]->ToNumber()->Value();
-    if (dimX < 2 || dimY < 0 || dimZ < 0) {
+    if (dimX < 2 || dimY < 2 || dimZ < 2) {
         return ThrowV8(Exception::RangeError, "dimensions too small");
     }
     uint8_t x = (uint8_t)args[3]->ToNumber()->Value();
@@ -94,6 +94,7 @@ Handle<Value> RotationBasisObj::New(const Arguments& args) {
     basis.dims.x = dimX;
     basis.dims.y = dimY;
     basis.dims.z = dimZ;
+    basis.dims.padding = 0;
     basis.xPower = x;
     basis.yPower = y;
     basis.zPower = z;
