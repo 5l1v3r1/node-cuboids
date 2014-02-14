@@ -5,7 +5,7 @@ using namespace v8;
 void COContextObj::Init(Handle<Object> target) {
     HandleScope scope;
     
-    NODE_SET_METHOD(target, "cuboidCornerOrientation", CuboidCornerOrientation);
+    NODE_SET_METHOD(target, "cornerOrientation", CuboidCornerOrientation);
 }
 
 Handle<Value> COContextObj::CuboidCornerOrientation(const Arguments& args) {

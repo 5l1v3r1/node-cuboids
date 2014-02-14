@@ -1,7 +1,7 @@
 #ifndef _STICKERMAP_H_
 #define _STICKERMAP_H_
 
-#include "representation.h"
+#include "cuboid_base.h"
 
 extern "C" {
 #include "stickers/stickermap.h"

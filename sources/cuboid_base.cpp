@@ -1,4 +1,4 @@
-#include "representation.h"
+#include "cuboid_base.h"
 
 #define CLASS_SPECIFIER "CUBOID_REPRESENTATION"
 

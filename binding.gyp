@@ -8,6 +8,7 @@
         "<!@(ls -1 ./Cuboids/algebra/*.c)",
         "<!@(ls -1 ./Cuboids/notation/*.c)",
         "./Cuboids/pieces/co.c",
+        "./Cuboids/pieces/eo.c",
         "<!@(ls -1 ./sources/*.cpp)"
       ],
       "include_dirs": ["./Cuboids", "./sources"]
