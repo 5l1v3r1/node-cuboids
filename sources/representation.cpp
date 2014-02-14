@@ -317,6 +317,6 @@ Cuboid * CuboidObj::getCuboidData() {
 
 /* PROTECTED */
 
-CuboidObj * CuboidObj::ProcessThisArgument(const v8::Arguments& args) {
+CuboidObj * CuboidObj::ProcessThisArgument(const Arguments& args) {
     return CastToCuboid(args.This());
 }
