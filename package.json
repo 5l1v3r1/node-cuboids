@@ -3,11 +3,13 @@
   "description": "a binding for a C-based cuboid puzzle API",
   "author": "Alex Nichol <unixpickle@gmail.com>",
   "repository": "https://github.com/unixpickle/node-cuboids",
-  "version": "0.0.5",
-  "licenses": [{
-    "type": "GPL",
-    "url": "http://www.gnu.org/licenses/gpl.html"
-  }],
+  "version": "0.0.6",
+  "licenses": [
+    {
+      "type": "GPL",
+      "url": "http://www.gnu.org/licenses/gpl.html"
+    }
+  ],
   "devDependencies": {
     "coffee-script": "1.6.x"
   },
