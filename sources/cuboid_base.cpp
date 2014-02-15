@@ -5,6 +5,15 @@
 // these are really nice because they return *for* you
 #define GETTHIS CuboidObj * thisObj = ProcessThisArgument(args);\
     if (!thisObj) return ThrowV8(Exception::TypeError, "must be called on Cuboid object");
+#define ENSURE_OBJ_INT_ARGS if (args.Length() != 2) {\
+        return ThrowV8(Exception::Error, "this function takes exactly 2 arguments");\
+    }\
+    if (!args[0]->IsNumber()) {\
+        return ThrowV8(Exception::TypeError, "the center index must be an integer");\
+    }\
+    if (!args[1]->IsObject()) {\
+        return ThrowV8(Exception::TypeError, "the center must be an object");\
+    }
 
 using namespace v8;
 
@@ -37,6 +46,11 @@ void CuboidObj::Init(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "getEdge", GetEdge);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getCorner", GetCorner);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getDimensions", GetDimensions);
+    
+    // setting piece information
+    NODE_SET_PROTOTYPE_METHOD(constructor, "setCenter", SetCenter);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "setEdge", SetEdge);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "setCorner", SetCorner);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -281,6 +295,115 @@ Handle<Value> CuboidObj::GetDimensions(const Arguments& args) {
     
     CuboidDimensions dimensions = thisObj->cuboidData->dimensions;
     return scope.Close(dimensionsToObject(dimensions));
+}
+
+Handle<Value> CuboidObj::SetCenter(const Arguments& args) {
+    HandleScope scope;
+    GETTHIS;
+    ENSURE_OBJ_INT_ARGS;
+    
+    uint32_t slot = args[0]->ToNumber()->Value();
+    if (slot >= cuboid_count_centers(thisObj->cuboidData)) {
+        return ThrowV8(Exception::RangeError, "the center index is invalid");
+    }
+    
+    Handle<Object> center = args[1]->ToObject();
+    if (!center->Get(String::NewSymbol("side"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the side must be an integer");
+    }
+    if (!center->Get(String::NewSymbol("index"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the index must be an integer");
+    }
+    
+    uint8_t side = center->Get(String::NewSymbol("side"))->ToNumber()->Value();
+    uint16_t index = center->Get(String::NewSymbol("index"))->ToNumber()->Value();
+    if (side < 1 || side > 6) {
+        return ThrowV8(Exception::RangeError, "the side must range from 1 to 6");
+    }
+    if (index >= cuboid_count_centers_for_face(thisObj->cuboidData, side)) {
+        return ThrowV8(Exception::RangeError, "invalid piece index");
+    }
+    
+    CuboidCenter c;
+    c.side = side;
+    c.index = index;
+    thisObj->cuboidData->centers[slot] = c;
+    return scope.Close(Undefined());
+}
+
+Handle<Value> CuboidObj::SetEdge(const Arguments& args) {
+    HandleScope scope;
+    GETTHIS;
+    ENSURE_OBJ_INT_ARGS;
+    
+    uint32_t slot = args[0]->ToNumber()->Value();
+    if (slot >= cuboid_count_edges(thisObj->cuboidData)) {
+        return ThrowV8(Exception::RangeError, "the edge index is invalid");
+    }
+    
+    Handle<Object> edge = args[1]->ToObject();
+    if (!edge->Get(String::NewSymbol("edgeIndex"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the edgeIndex must be an integer");
+    }
+    if (!edge->Get(String::NewSymbol("dedgeIndex"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the dedgeIndex must be an integer");
+    }
+    if (!edge->Get(String::NewSymbol("symmetry"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the symmetry must be an integer");
+    }
+    
+    uint8_t edgeIndex = edge->Get(String::NewSymbol("edgeIndex"))->ToNumber()->Value();
+    uint8_t dedgeIndex = edge->Get(String::NewSymbol("dedgeIndex"))->ToNumber()->Value();
+    uint8_t symmetry = edge->Get(String::NewSymbol("symmetry"))->ToNumber()->Value();
+    if (symmetry >= 6) {
+        return ThrowV8(Exception::RangeError, "symmetry must range from 0 to 5");
+    }
+    if (dedgeIndex >= 12) {
+        return ThrowV8(Exception::RangeError, "dedgeIndex must range from 0 to 11");
+    }
+    if (edgeIndex >= cuboid_count_edges_for_dedge(thisObj->cuboidData, dedgeIndex)) {
+        return ThrowV8(Exception::RangeError, "edgeIndex out of bounds");
+    }
+    
+    CuboidEdge e;
+    e.edgeIndex = edgeIndex;
+    e.dedgeIndex = dedgeIndex;
+    e.symmetry = symmetry;
+    thisObj->cuboidData->edges[slot] = e;
+    return scope.Close(Undefined());
+}
+
+Handle<Value> CuboidObj::SetCorner(const Arguments& args) {
+    HandleScope scope;
+    GETTHIS;
+    ENSURE_OBJ_INT_ARGS;
+    
+    uint32_t slot = args[0]->ToNumber()->Value();
+    if (slot >= 8) {
+        return ThrowV8(Exception::RangeError, "the center index is invalid");
+    }
+    
+    Handle<Object> corner = args[1]->ToObject();
+    if (!corner->Get(String::NewSymbol("index"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the index must be an integer");
+    }
+    if (!corner->Get(String::NewSymbol("symmetry"))->IsNumber()) {
+        return ThrowV8(Exception::TypeError, "the symmetry must be an integer");
+    }
+    uint8_t index = corner->Get(String::NewSymbol("index"))->ToNumber()->Value();
+    uint8_t symmetry = corner->Get(String::NewSymbol("symmetry"))->ToNumber()->Value();
+    if (index >= 8) {
+        return ThrowV8(Exception::RangeError, "invaild piece index");
+    }
+    if (symmetry >= 6) {
+        return ThrowV8(Exception::RangeError, "symmetry must range from 0 to 5");
+    }
+    
+    CuboidCorner c;
+    c.index = index;
+    c.symmetry = symmetry;
+    thisObj->cuboidData->corners[slot] = c;
+    return scope.Close(Undefined());
 }
 
 /** Utility **/

@@ -32,6 +32,10 @@ public:
     static v8::Handle<v8::Value> GetCorner(const v8::Arguments& args);
     static v8::Handle<v8::Value> GetDimensions(const v8::Arguments& args);
     
+    static v8::Handle<v8::Value> SetCenter(const v8::Arguments& args);
+    static v8::Handle<v8::Value> SetEdge(const v8::Arguments& args);
+    static v8::Handle<v8::Value> SetCorner(const v8::Arguments& args);
+    
     // TODO: create *move* constructors here, etc.
     
     static v8::Handle<v8::Object> CreateCuboid(Cuboid * internal);

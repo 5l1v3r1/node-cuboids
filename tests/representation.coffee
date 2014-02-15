@@ -38,9 +38,19 @@ testMultiplicationMemory = ->
   c2 = new Cuboid 3, 3, 3
   c = c.multiply c2
 
+testSetting = ->
+  # meh, who cares if it creates an invalid cube!
+  c.setEdge 2, symmetry: 1, dedgeIndex: 2, edgeIndex: 0
+  console.log 'getEdge(2) =>', c.getEdge 2
+  c.setCorner 2, symmetry: 4, index: 2
+  console.log 'getCorner(2) =>', c.getCorner 2
+  c.setCenter 2, side: 2, index: 0
+  console.log 'getCenter(2) =>', c.getCenter 2
+
 testInformational()
 testMultiplication()
 testInformational()
+testSetting()
 
 # use to test for leaks
 # loop
